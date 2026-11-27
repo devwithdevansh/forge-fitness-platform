@@ -11,7 +11,7 @@ A complete fitness & gym management ecosystem — including the public marketing
 | **Public Website** | `forge-gym/web/website` | [demo-web-forge-gym.onrender.com](https://demo-web-forge-gym.onrender.com/) | High-converting landing page & membership calculator |
 | **SaaS Portal** | `forge-gym/web/saas` | [demo-web-gym-saas.onrender.com](https://demo-web-gym-saas.onrender.com/) | Multi-role management console (Owner, Staff, Trainer) |
 | **Member App** | `forge-gym/web/member` | [demo-web-gym-member.onrender.com](https://demo-web-gym-member.onrender.com/) | Digital gym pass, QR check-in, and workout tracking |
-| **Admin Console** | `forge-gym/web/admin` | [https://demo-web-gym-admin.onrender.com](https://demo-web-gym-admin.onrender.com/) | Super-admin platform management |
+| **Admin Console** | `forge-gym/web/admin` | [demo-web-gym-admin.onrender.com](https://demo-web-gym-admin.onrender.com/) | Super-admin platform management |
 | **REST API** | `forge-gym/api` | [forge-gym-api.onrender.com](https://forge-gym-api.onrender.com/) | Express + MongoDB backend service |
 | **Mobile App** | `forge-gym/app` | — | Flutter mobile client |
 
