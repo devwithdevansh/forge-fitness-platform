@@ -1,20 +1,48 @@
-# Demo Websites Portfolio
+# 🏋️ FORGE Fitness Platform
 
-A collection of front-end React demonstrations showcasing complex UI/UX implementations, advanced animations (GSAP/Framer Motion), and modern component architecture.
-
-## Projects
-
-### 1. [FORGE](./forge-gym/)
-Software for gym owners, shown as one combined demo: a product website, the sample gym site, the owner/front-desk portal, the SaaS console, the member PWA and a Flutter gym app. Everything shares one Node.js + MongoDB API in [forge-gym/api](./forge-gym/api/).
-
-### 2. [Obsidian](./obsidian-react/)
-A high-end, dark-mode automotive detailing website. Features a luxury aesthetic with custom cursors, smooth reveals, and an interactive configurator.
-
-### 3. [Nuance](./nuance-react/)
-An elegant, minimalist salon and spa website. Features micro-interactions, smooth scrolling, and structured service menus.
-
-### 4. [Amber & Ash](./amber-ash/)
-A wood-fire restaurant and bar website. Features masonry gallery layouts, client-side booking validations, and a clean typography system.
+A complete fitness & gym management ecosystem — including the public marketing website, multi-role SaaS portal, member digital pass PWA, super-admin console, and Node/MongoDB REST API.
 
 ---
-**Tech Stack Across Projects:** React, Vite, TailwindCSS, GSAP, Framer Motion, Lenis.
+
+## 📦 Project Structure
+
+| App | Path | Live URL | Description |
+| :--- | :--- | :--- | :--- |
+| **Public Website** | `forge-gym/web/website` | [demo-web-forge-gym.onrender.com](https://demo-web-forge-gym.onrender.com/) | High-converting landing page & membership calculator |
+| **SaaS Portal** | `forge-gym/web/saas` | [demo-web-gym-saas.onrender.com](https://demo-web-gym-saas.onrender.com/) | Multi-role management console (Owner, Staff, Trainer) |
+| **Member App** | `forge-gym/web/member` | [demo-web-gym-member.onrender.com](https://demo-web-gym-member.onrender.com/) | Digital gym pass, QR check-in, and workout tracking |
+| **Admin Console** | `forge-gym/web/admin` | — | Super-admin platform management |
+| **REST API** | `forge-gym/api` | [forge-gym-api.onrender.com](https://forge-gym-api.onrender.com/) | Express + MongoDB backend service |
+| **Mobile App** | `forge-gym/app` | — | Flutter mobile client |
+
+---
+
+## 🚀 Local Development
+
+Run commands from the repository root:
+
+```bash
+# Start all services together (API + Web + SaaS + Admin + Member)
+npm run dev
+
+# Or run individual apps
+npm run dev:api
+npm run dev:web
+npm run dev:saas
+npm run dev:member
+npm run dev:admin
+```
+
+### Build Commands
+```bash
+npm run build:web
+npm run build:saas
+npm run build:member
+npm run build:admin
+```
+
+---
+
+## ☁️ Deployment (Render)
+
+Configured via [`render.yaml`](./render.yaml). Each web app deploys as a static site with its own `rootDir` (e.g. `forge-gym/web/website`), `npm install && npm run build`, and `dist` publish directory.
