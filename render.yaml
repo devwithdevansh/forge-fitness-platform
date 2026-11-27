@@ -1,40 +1,30 @@
-# Render blueprint for the FORGE API (forge-gym/api/).
-#
-# The FORGE sites stay on their existing static hosting. This adds the Node
-# service that every portal, the website demo and the Flutter app talk to.
-# In Render: New > Blueprint, pick this repository, then enter MONGODB_URI
-# when asked.
-#
-# After it is live, set VITE_API_URL on each static site (and
-# --dart-define=API_BASE_URL for the Flutter app) to this service's address,
-# then redeploy (see forge-gym/README.md).
+# Render blueprint for the FORGE Gym Platform Ecosystem
 services:
+  # ── FORGE REST API Backend ──
   - type: web
     name: forge-gym-api
     runtime: node
     plan: free
     rootDir: forge-gym/api
-    # Production packages only: skips the development database download.
     buildCommand: npm ci --omit=dev
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
-      # MongoDB Atlas connection string. Entered in the dashboard, never stored in the repo.
       - key: MONGODB_URI
         sync: false
       - key: MONGODB_DB
         value: gym
       - key: JWT_SECRET
         generateValue: true
-      # Comma-separated site addresses allowed to call this API.
       - key: CORS_ORIGIN
-        value: https://demo-web-forge-gym.onrender.com,https://demo-web-gym-saas.onrender.com
+        value: https://demo-web-forge-gym.onrender.com,https://demo-web-gym-saas.onrender.com,https://demo-web-gym-member.onrender.com
 
+  # ── Public Marketing & Demo Website ──
   - type: static
-    name: nuance-react
-    rootDir: nuance-react
+    name: demo-web-forge-gym
+    rootDir: forge-gym/web/website
     buildCommand: npm install && npm run build
     publishPath: dist
     routes:
@@ -42,9 +32,10 @@ services:
         source: /*
         destination: /index.html
 
+  # ── SaaS Management Portal ──
   - type: static
-    name: amber-ash
-    rootDir: amber-ash
+    name: demo-web-gym-saas
+    rootDir: forge-gym/web/saas
     buildCommand: npm install && npm run build
     publishPath: dist
     routes:
@@ -52,9 +43,10 @@ services:
         source: /*
         destination: /index.html
 
+  # ── Member Digital Pass & Check-In App ──
   - type: static
-    name: saltlight
-    rootDir: saltlight
+    name: demo-web-gym-member
+    rootDir: forge-gym/web/member
     buildCommand: npm install && npm run build
     publishPath: dist
     routes:
@@ -62,9 +54,10 @@ services:
         source: /*
         destination: /index.html
 
+  # ── Super Admin Console ──
   - type: static
-    name: salon-dashboard
-    rootDir: salon-dashboard/frontend
+    name: demo-web-gym-admin
+    rootDir: forge-gym/web/admin
     buildCommand: npm install && npm run build
     publishPath: dist
     routes:
