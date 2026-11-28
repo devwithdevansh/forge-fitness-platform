@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models.dart';
 import 'api.dart';
+import 'mock_data.dart';
 
 class AppState extends ChangeNotifier {
   AppState._(this._prefs, this.api);
@@ -122,13 +123,30 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> enterDemo({String role = 'owner', String tier = 'performance'}) async {
-    final fresh = await api.demoSession(role: role, tier: tier, sandboxKey: _prefs.getString(_sandboxKey));
-    await _useSession(fresh);
+    try {
+      final fresh = await api.demoSession(role: role, tier: tier, sandboxKey: _prefs.getString(_sandboxKey));
+      await _useSession(fresh);
+    } catch (_) {
+      final fallback = MockData.demoSession(role);
+      await _useSession(fallback);
+    }
+  }
+
+  Future<void> switchDemoRole(String role) async {
+    final nextRole = role.toLowerCase().trim();
+    MockData.activeRole = nextRole;
+    final fallback = MockData.demoSession(nextRole);
+    await _useSession(fallback);
   }
 
   Future<void> resetDemo() async {
-    final fresh = await api.resetDemo();
-    await _useSession(fresh);
+    try {
+      final fresh = await api.resetDemo();
+      await _useSession(fresh);
+    } catch (_) {
+      final fallback = MockData.demoSession('owner');
+      await _useSession(fallback);
+    }
   }
 
   Future<void> refreshSession() async {

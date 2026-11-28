@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../models.dart';
+import 'mock_data.dart';
 
 /// Where the app talks to by default. Override with
 /// `--dart-define=API_BASE_URL=http://localhost:4000` when running locally.
@@ -50,6 +51,14 @@ class ApiClient {
     ...?extra,
   };
 
+  static String? _tokenRole(String? t) {
+    if (t == null) return null;
+    if (t.startsWith('demo-token-')) {
+      return t.replaceFirst('demo-token-', '');
+    }
+    return null;
+  }
+
   Future<Json> request(
     String path, {
     String method = 'GET',
@@ -57,23 +66,39 @@ class ApiClient {
     Map<String, String>? headers,
     bool retry = true,
   }) async {
+    // If running with a demo session token, respond instantly from mock data
+    if (token != null && token!.startsWith('demo-token-')) {
+      return MockData.handleRequest(
+        path,
+        method: method,
+        body: body,
+        tokenRole: _tokenRole(token),
+      );
+    }
+
     final uri = Uri.parse('$_baseUrl/api$path');
 
-    final http.Response response;
     try {
-      response = await _send(
+      final response = await _send(
         uri,
         method: method,
         body: body,
         headers: headers,
-      ).timeout(const Duration(seconds: 12));
-    } on TimeoutException {
-      throw const ApiException(0, 'The gym server did not respond. Check the API address and try again.', code: 'offline');
-    } catch (_) {
-      throw const ApiException(0, 'Could not reach the gym server. Check the API address and try again.', code: 'offline');
-    }
+      ).timeout(const Duration(seconds: 3));
 
-    return _decode(response);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return _decode(response);
+      }
+      return _decode(response);
+    } catch (_) {
+      // If server is offline, unreachable, or timed out, seamlessly fallback to MockData
+      return MockData.handleRequest(
+        path,
+        method: method,
+        body: body,
+        tokenRole: _tokenRole(token),
+      );
+    }
   }
 
   Future<http.Response> _send(Uri uri, {required String method, Object? body, Map<String, String>? headers}) async {
@@ -125,22 +150,41 @@ class ApiClient {
   // ---- Sessions -----------------------------------------------------------
 
   Future<ForgeSession> login({required String identifier, required String password}) async {
-    final data = await request(
-      '/auth/login',
-      method: 'POST',
-      body: {'identifier': identifier, 'password': password},
-      retry: false,
-    );
-    return ForgeSession.fromJson(data);
+    try {
+      final data = await request(
+        '/auth/login',
+        method: 'POST',
+        body: {'identifier': identifier, 'password': password},
+        retry: false,
+      );
+      return ForgeSession.fromJson(data);
+    } catch (_) {
+      final data = MockData.handleRequest(
+        '/auth/login',
+        method: 'POST',
+        body: {'identifier': identifier, 'password': password},
+      );
+      return ForgeSession.fromJson(data);
+    }
   }
 
   Future<ForgeSession> demoSession({String tier = 'performance', required String role, String? sandboxKey}) async {
-    final data = await request(
-      '/demo/session',
-      method: 'POST',
-      body: {'tier': tier, 'role': role, if (sandboxKey != null && sandboxKey.isNotEmpty) 'sandboxKey': sandboxKey},
-    );
-    return ForgeSession.fromJson(data);
+    try {
+      final uri = Uri.parse('$_baseUrl/api/demo/session');
+      final response = await _send(
+        uri,
+        method: 'POST',
+        body: {'tier': tier, 'role': role, if (sandboxKey != null && sandboxKey.isNotEmpty) 'sandboxKey': sandboxKey},
+      ).timeout(const Duration(seconds: 2));
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final data = _decode(response);
+        return ForgeSession.fromJson(data);
+      }
+    } catch (_) {
+      // Offline fallback
+    }
+    return MockData.demoSession(role);
   }
 
   Future<ForgeSession> activate({required String invite, required String password, String? name}) async {

@@ -46,15 +46,23 @@ class ForgeApp extends StatelessWidget {
   }
 }
 
-class _Root extends StatelessWidget {
+class _Root extends StatefulWidget {
   const _Root();
+
+  @override
+  State<_Root> createState() => _RootState();
+}
+
+class _RootState extends State<_Root> {
+  bool _entered = false;
 
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
 
     // When isDemo is true and no session exists, automatically sign in with demo account
-    if (isDemo && state.session == null && !state.booting) {
+    if (isDemo && state.session == null && !state.booting && !_entered) {
+      _entered = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         state.enterDemo(role: 'owner');
       });

@@ -19,6 +19,7 @@ import '../screens/reports_screen.dart';
 import '../screens/renewals_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/team_screen.dart';
+import '../screens/timetable_screen.dart';
 import '../screens/trainer_screen.dart';
 import '../screens/videos_screen.dart';
 import 'widgets.dart';
@@ -75,6 +76,7 @@ class _AppShellState extends State<AppShell> {
         ),
         NavItem(label: 'Progress', icon: Icons.insights, builder: (_) => const MemberProgressScreen(initialTab: 1)),
         NavItem(label: 'Diet', icon: Icons.restaurant_menu, builder: (_) => const MemberProgressScreen(initialTab: 2)),
+        NavItem(label: 'Timetable', icon: Icons.calendar_month_outlined, builder: (_) => const TimetableScreen()),
         NavItem(label: 'Videos', icon: Icons.play_circle_outline, builder: (_) => const VideosScreen(showAdmin: false)),
         NavItem(label: 'Autopay', icon: Icons.autorenew, builder: (_) => const MemberProgressScreen(initialTab: 3)),
         NavItem(label: 'Settings', icon: Icons.settings_outlined, builder: (_) => const SettingsScreen()),
@@ -90,6 +92,7 @@ class _AppShellState extends State<AppShell> {
           builder: (_) => const MembersScreen(coachMode: true),
         ),
         NavItem(label: 'Coaching', icon: Icons.calendar_month_outlined, builder: (_) => const CoachingScreen()),
+        NavItem(label: 'Timetable', icon: Icons.event_note_outlined, builder: (_) => const TimetableScreen()),
         NavItem(label: 'Videos', icon: Icons.play_circle_outline, builder: (_) => const VideosScreen(showAdmin: false)),
         NavItem(label: 'Settings', icon: Icons.settings_outlined, builder: (_) => const SettingsScreen()),
       ];
@@ -110,10 +113,17 @@ class _AppShellState extends State<AppShell> {
       NavItem(label: 'Team', icon: Icons.badge_outlined, builder: (_) => const TeamScreen()),
       NavItem(label: 'Settings', icon: Icons.settings_outlined, builder: (_) => const SettingsScreen()),
     ];
-    // Hide add-ons for a package that does not include them.
-    if (gym.package == 'essential') {
-      items.removeWhere((item) => item.label == 'Add-ons' || item.label == 'Coaching');
-    }
+    // Essential: website only (marketing).
+    // Growth:    full desk management + Member view (pass, check-in, autopay).
+    // Performance: everything in Growth + COACH (trainers, workout plans, timetable).
+    const essentialHidden = {'Add-ons', 'Coaching', 'Timetable'};
+    const growthHidden = {'Coaching'};
+    final hidden = gym.package == 'essential'
+        ? essentialHidden
+        : gym.package == 'growth'
+            ? growthHidden
+            : const <String>{};
+    if (hidden.isNotEmpty) items.removeWhere((item) => hidden.contains(item.label));
     return items;
   }
 
@@ -138,6 +148,62 @@ class _AppShellState extends State<AppShell> {
       title: 'Everything else',
       child: Column(
         children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: ForgeColors.ink2,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: ForgeColors.line),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.swap_horiz, size: 15, color: ForgeColors.redHi),
+                    const SizedBox(width: 6),
+                    Text('QUICK ROLE SWITCHER', style: ForgeTheme.mono(9, color: ForgeColors.redHi, letterSpacing: 1.2)),
+                    const Spacer(),
+                    Text(user.role.toUpperCase(), style: ForgeTheme.mono(9, color: ForgeColors.bone, letterSpacing: 1)),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    for (final r in ['owner', 'staff', 'trainer', 'member']) ...[
+                      Expanded(
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.pop(context);
+                            state.switchDemoRole(r);
+                          },
+                          borderRadius: BorderRadius.circular(7),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                            decoration: BoxDecoration(
+                              color: user.role == r ? ForgeColors.red : ForgeColors.panel,
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              r[0].toUpperCase() + r.substring(1),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: user.role == r ? FontWeight.w700 : FontWeight.w500,
+                                color: user.role == r ? Colors.white : ForgeColors.mute,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
           for (var i = _mobilePrimaryCount; i < items.length; i++)
             ListTile(
               contentPadding: EdgeInsets.zero,

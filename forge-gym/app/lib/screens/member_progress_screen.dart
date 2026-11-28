@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -29,11 +30,19 @@ class _MemberProgressScreenState extends State<MemberProgressScreen> {
   late Future<MemberPortal> _future;
   late int _tab = widget.initialTab.clamp(0, _tabs.length - 1);
   bool _busy = false;
+  Timer? _syncTimer;
 
   @override
   void initState() {
     super.initState();
     _future = _load();
+    _syncTimer = Timer.periodic(const Duration(seconds: 30), (_) => _silentSync());
+  }
+
+  @override
+  void dispose() {
+    _syncTimer?.cancel();
+    super.dispose();
   }
 
   Future<MemberPortal> _load() => context.read<AppState>().api.portal();
@@ -42,6 +51,16 @@ class _MemberProgressScreenState extends State<MemberProgressScreen> {
     setState(() {
       _future = _load();
     });
+  }
+
+  Future<void> _silentSync() async {
+    if (!mounted) return;
+    try {
+      final fresh = await context.read<AppState>().api.portal();
+      if (mounted) {
+        setState(() => _future = Future.value(fresh));
+      }
+    } catch (_) {}
   }
 
   Future<void> _openVideo(String url) async {
@@ -381,6 +400,34 @@ class _WorkoutDayCard extends StatelessWidget {
   }
 }
 
+void _showRestTimerSheet(BuildContext context) {
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: ForgeColors.panel,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (_) => Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 36,
+            height: 4,
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: ForgeColors.line,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const InWorkoutRestTimer(),
+        ],
+      ),
+    ),
+  );
+}
+
 class _ExerciseRow extends StatelessWidget {
   const _ExerciseRow({required this.exercise, required this.done, required this.onToggle, required this.onOpenVideo});
 
@@ -388,6 +435,17 @@ class _ExerciseRow extends StatelessWidget {
   final bool done;
   final VoidCallback onToggle;
   final Future<void> Function(String url) onOpenVideo;
+
+  void _handleToggle(BuildContext context) {
+    final wasNotDone = !done;
+    onToggle();
+    if (wasNotDone) {
+      // Set just got checked — launch rest timer
+      Future.microtask(() {
+        if (context.mounted) _showRestTimerSheet(context);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -401,7 +459,7 @@ class _ExerciseRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           GestureDetector(
-            onTap: onToggle,
+            onTap: () => _handleToggle(context),
             child: Container(
               width: 21,
               height: 21,

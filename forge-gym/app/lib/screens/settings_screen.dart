@@ -146,6 +146,64 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: 'Your profile, the server this app talks to, and the demo sandbox.',
           ),
           const SizedBox(height: 16),
+          ForgeCard(
+            accent: ForgeColors.red,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.swap_horiz_rounded, size: 18, color: ForgeColors.redHi),
+                    const SizedBox(width: 8),
+                    Text('DEMO PERSONA SWITCHER', style: ForgeTheme.mono(10, letterSpacing: 1.5, color: ForgeColors.redHi)),
+                    const Spacer(),
+                    StatusPill(label: user.role.toUpperCase(), color: ForgeColors.red, dense: true),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Instantly switch user roles to test and showcase every perspective of FORGE.',
+                  style: ForgeTheme.body(11.5, color: ForgeColors.mute),
+                ),
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _RoleButton(
+                      label: 'Owner / Admin',
+                      role: 'owner',
+                      active: user.isOwner,
+                      icon: Icons.admin_panel_settings_outlined,
+                      onTap: () => state.switchDemoRole('owner'),
+                    ),
+                    _RoleButton(
+                      label: 'Front Desk / Staff',
+                      role: 'staff',
+                      active: user.isStaff,
+                      icon: Icons.badge_outlined,
+                      onTap: () => state.switchDemoRole('staff'),
+                    ),
+                    _RoleButton(
+                      label: 'Personal Trainer',
+                      role: 'trainer',
+                      active: user.isTrainer,
+                      icon: Icons.sports_gymnastics,
+                      onTap: () => state.switchDemoRole('trainer'),
+                    ),
+                    _RoleButton(
+                      label: 'Gym Member',
+                      role: 'member',
+                      active: user.isMember,
+                      icon: Icons.fitness_center,
+                      onTap: () => state.switchDemoRole('member'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
           LayoutBuilder(
             builder: (context, constraints) {
               final wide = constraints.maxWidth >= 820;
@@ -383,3 +441,54 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return content;
   }
 }
+
+class _RoleButton extends StatelessWidget {
+  const _RoleButton({
+    required this.label,
+    required this.role,
+    required this.active,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String label;
+  final String role;
+  final bool active;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: active ? null : onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: active ? ForgeColors.red.withValues(alpha: 0.18) : ForgeColors.ink2,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: active ? ForgeColors.red : ForgeColors.line,
+            width: active ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: active ? ForgeColors.redHi : ForgeColors.mute),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: ForgeTheme.body(
+                12,
+                weight: active ? FontWeight.w600 : FontWeight.w500,
+                color: active ? ForgeColors.bone : ForgeColors.mute,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
